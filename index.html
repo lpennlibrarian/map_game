@@ -48,11 +48,13 @@ h1 { font-size: 1.35rem; margin: 0 0 14px 0; }
 .to-example img { max-width: 110px; }
 }
 </style>
-</head> Symbolic Map Matching <body> 
-<div>  
-  Mapping is the process of creating a visual representation of an area, illustrating spatial relationships between features, whether geographical, data-driven, or conceptual. It involves gathering data through surveys, satellite imagery, or, in the case of medieval T-O maps, symbolic, circular representations of the world. A T-O map (or Orbis Terrarum) is a medieval world map representing the physical world as a circle divided into three parts by a "T" shape.  
-</div>  
+</head>
+<body>
 
+Symbolic Map Matching
+  <div>  
+  <div>Mapping is the process of creating a visual representation of an area, illustrating spatial relationships between features, whether geographical, data-driven, or conceptual. It involves gathering data through surveys, satellite imagery, or, in the case of medieval T-O maps, symbolic, circular representations of the world. A T-O map (or Orbis Terrarum) is a medieval world map representing the physical world as a circle divided into three parts by a "T" shape.</div>  
+</div>  
 <div>  
   <span>This example of a T-O map:</span>  
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Hereford_mappa_mundi.jpg/400px-Hereford_mappa_mundi.jpg" alt="T-O Map Example" loading="lazy">  
@@ -76,7 +78,7 @@ h1 { font-size: 1.35rem; margin: 0 0 14px 0; }
 
 <div></div>  
 <script>
-// Google Drive direct-view URLs. Keep these exactly as-is.
+// Image pairs: index i in MAPS matches index i in PHOTOS
 const MAPS = [
 "https://drive.google.com/uc?export=view&id=1JRngUAUVHe0sce58QPphM7ycKs4klyFt",
 "https://drive.google.com/uc?export=view&id=1kZUXaG_w0rbjDdrO-WKtxqBAJmfrfQWs",
@@ -118,14 +120,22 @@ function renderGame() {
     z.className = 'zone';  
     z.dataset.zone = i;  
     z.tabIndex = 0;  
-    z.innerHTML = `<img src alt="Map location ${i+1}"><span>Drop the matching photo</span>`;  
+    z.innerHTML = `  
+      <img src alt="Map location ${i+1}">  
+      <span>Drop the matching photo</span>  
+    `;  
     zonesEl.appendChild(z);  
 
-    z.addEventListener('dragover', e =&gt; { if (gameComplete) return; e.preventDefault(); z.classList.add('dragover'); });  
+    z.addEventListener('dragover', e =&gt; {  
+      if (gameComplete) return;  
+      e.preventDefault();  
+      z.classList.add('dragover');  
+    });  
     z.addEventListener('dragleave', () =&gt; z.classList.remove('dragover'));  
     z.addEventListener('drop', function(e) {  
-      if (gameComplete || z.classList.contains('matched')) return;  
+      if (gameComplete) return;  
       z.classList.remove('dragover');  
+      if (z.classList.contains('matched')) return;  
       const draggedIdx = parseInt(e.dataTransfer.getData('photo-idx'));  
       processDrop(i, draggedIdx, this);  
     });  
@@ -141,6 +151,7 @@ function renderGame() {
     img.className = 'drop-img';  
     img.draggable = true;  
     img.dataset.photoIdx = idx;  
+    img.tabIndex = 0;  
 
     img.addEventListener('dragstart', function(e) {  
       if (gameComplete) { e.preventDefault(); return; }  
@@ -152,12 +163,11 @@ function renderGame() {
       img.classList.remove('dragging');  
     });  
 
-    // Basic touch support  
+    // Touch support  
     img.addEventListener('touchstart', function() {  
       if (gameComplete) return;  
       img.classList.add('dragging');  
       this._touchMoving = true;  
-      this._dragIdx = idx;  
     });  
     img.addEventListener('touchend', function(e) {  
       if (!this._touchMoving) return;  
@@ -168,20 +178,28 @@ function renderGame() {
       while (el && !el.classList?.contains('zone') && el !== document.body) el = el.parentNode;  
       if (el && el.classList.contains('zone') && !el.classList.contains('matched')) {  
         let zoneIdx = parseInt(el.dataset.zone);  
-        processDrop(zoneIdx, this._dragIdx, el);  
+        processDrop(zoneIdx, idx, el);  
       }  
     });  
 
     poolEl.appendChild(img);  
   }  
+
+  moves = 0;  
+  matches = 0;  
+  updateStats();  
+  announce("Start the game. Drag a photo to its matching map.");  
 }  
 
 function processDrop(zoneIdx, photoIdx, zoneEl) {  
   if (gameComplete || zoneEl.classList.contains('matched')) return;  
   moves += 1;  
+
   if (zoneIdx === photoIdx) {  
     matches += 1;  
     zoneEl.classList.add('matched');  
+
+    // Hide from pool and show confirmation image in zone  
     const poolImgs = poolEl.querySelectorAll('.drop-img');  
     for (let img of poolImgs) {  
       if (parseInt(img.dataset.photoIdx) === photoIdx) {  
@@ -189,19 +207,19 @@ function processDrop(zoneIdx, photoIdx, zoneEl) {
         const matchthumb = img.cloneNode();  
         matchthumb.draggable = false;  
         matchthumb.style.marginLeft = "5px";  
-        matchthumb.style.opacity = "1";  
-        matchthumb.classList.remove('dragging');  
         matchthumb.tabIndex = -1;  
         zoneEl.appendChild(matchthumb);  
         break;  
       }  
     }  
+
     announce("Correct match.");  
     updateStats();  
+
     if (matches === MAPS.length) {  
       gameComplete = true;  
       announce("All matches found.");  
-      setTimeout(() =&gt; showCompleteMessage(), 390);  
+      setTimeout(showCompleteMessage, 390);  
     }  
   } else {  
     announce("Try again. That's not the correct photo for this map.");  
@@ -214,20 +232,21 @@ function updateStats() {
   matchesEl.textContent = "Matches: " + matches;  
 }  
 
-function announce(txt) { liveEl.textContent = txt; }  
+function announce(txt) {  
+  liveEl.textContent = txt;  
+}  
 
 function showCompleteMessage() {  
-  endMsgEl.innerHTML = `<div>  
-    🎉 Thank you for playing Symbolic Map Matching!<br>  
-    All locations have been matched.<br><br>  
-    Consider the items in the T‑O maps and their placement, as compared to the photo references you matched.<br>  
-    What differences or similarities did you notice?  
-  </div>`;  
+  endMsgEl.innerHTML = `  
+    <div>  
+      🎉 Thank you for playing Symbolic Map Matching!<br>  
+      All locations have been matched.<br><br>  
+      Consider the items in the T‑O maps and their placement, as compared to the photo references you matched.<br>  
+      What differences or similarities did you notice?  
+    </div>`;  
 }  
 
 renderGame();  
-updateStats();  
-announce("Start the game. Drag a photo to its matching map.");  
 </script>
 </body>
 </html>
