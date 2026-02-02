@@ -6,91 +6,452 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
 :root {
---zone-size: 140px;
---item-size: 120px;
---cols: 2;
---accent: #2d7ff9;
+  --zone-size: 160px;
+  --item-size: 130px;
+  --accent: #4a90d9;
+  --accent-light: #e8f0fa;
+  --success: #3cb371;
+  --success-light: #e8f7ef;
+  --bg-primary: #f0f4f8;
+  --bg-card: #ffffff;
+  --text-primary: #1a2b3c;
+  --text-secondary: #5a6b7c;
+  --border-light: #d8e2ec;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
+
+* { box-sizing: border-box; }
+
 body {
-font-family: system-ui, Arial, sans-serif;
-margin: 0;
-padding: 24px;
-background: #f7f8fb;
-color: #12141a;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #e8f0fa 0%, #f0f4f8 50%, #f5f7fa 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
 }
-.wrapper { max-width: 920px; margin: 0 auto; }
-header { margin-bottom: 16px; }
-h1 { font-size: 1.35rem; margin: 0 0 14px 0; }
-.intro { font-size: 1rem; margin-bottom: 12px; line-height: 1.5; }
-.to-example { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
-.to-example img { max-width: 200px; height: auto; border-radius: 5px; border: 1px solid #ddd; background: #fff; }
-.instructions { background: #eef3ff; padding: 10px 14px; margin-bottom: 22px; border-radius: 8px; font-size: 1rem; color: #183372; }
-.stats { font-size: 0.98rem; color: #4a4f57; margin-bottom: 12px; }
-.game-area { display: flex; align-items: flex-start; justify-content: center; gap: 32px; margin-bottom: 24px; flex-wrap: wrap; }
-.zone-list, .item-pool { display: flex; flex-direction: column; gap: 20px; min-width: 175px; }
-.zone { width: var(--zone-size); height: var(--zone-size); border: 2px dashed #bfcbe6; border-radius: 13px; display: flex; align-items: center; justify-content: center; background: #f3f6fd; transition: border-color 0.18s; position: relative; min-height: var(--zone-size); }
-.zone.dragover { border-color: var(--accent); background: #e6eefc; }
-.zone .prompt-label { position: absolute; font-size: 0.92em; top: 100%; left: 50%; transform: translate(-50%, 6px); color: #678; white-space: nowrap; }
-.drop-img { width: var(--item-size); height: var(--item-size); border-radius: 10px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #dadff0; background: #fff; transition: box-shadow 0.18s; touch-action: none; }
-.item-pool { align-items: center; justify-content: flex-start; min-width: 180px; background: #f8fafd; padding: 10px 6px; border-radius: 10px; border: 1px solid #e9eaf3; min-height: 450px; }
-.dragging { opacity: 0.6; box-shadow: 0 5px 18px #cbe1fd; }
-.zone.matched { border-color: #55cb76; background: #e2f9e1; transition: background 0.3s, border 0.3s; }
-.complete-message { font-size: 1.08em; color: #21663e; background: #e3faef; border: 1px solid #ace0c0; border-radius: 9px; padding: 14px 18px; margin-top: 24px; text-align: center; font-weight: 500; max-width: 700px; margin-left: auto; margin-right: auto; }
-.sr-only { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+
+.wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* Header Section */
+header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 32px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0 0 20px 0;
+}
+
+.intro {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 800px;
+  margin: 0 auto 24px auto;
+  text-align: left;
+}
+
+/* T-O Map Example Section */
+.to-example {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  background: var(--accent-light);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+}
+
+.to-example span {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.to-example img {
+  max-width: 220px;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 3px solid var(--bg-card);
+  box-shadow: var(--shadow-md);
+  background: var(--bg-card);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.to-example img:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Instructions Panel */
+.instructions {
+  background: linear-gradient(135deg, var(--accent) 0%, #5a9de6 100%);
+  color: white;
+  padding: 18px 24px;
+  border-radius: var(--radius-md);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 28px;
+}
+
+/* Stats Display */
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 28px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.stats span {
+  font-weight: 600;
+  padding: 8px 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+}
+
+/* Game Area */
+.game-area {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 48px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+/* Zone List (Map Images) */
+.zone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.zone-list-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--accent-light);
+}
+
+#zones {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Drop Zones */
+.zone {
+  width: var(--zone-size);
+  height: var(--zone-size);
+  border: 3px dashed var(--border-light);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-primary);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.zone:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.zone.dragover {
+  border-color: var(--accent);
+  border-style: solid;
+  background: var(--accent-light);
+  transform: scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+
+.zone .prompt-label {
+  position: absolute;
+  font-size: 0.75rem;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  background: rgba(255,255,255,0.9);
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0.8;
+}
+
+.zone-map-img {
+  width: calc(var(--zone-size) - 24px);
+  height: calc(var(--zone-size) - 40px);
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.zone.matched {
+  border-color: var(--success);
+  border-style: solid;
+  background: var(--success-light);
+  transform: scale(1.0);
+}
+
+.zone.matched .prompt-label {
+  display: none;
+}
+
+/* Item Pool (Photo References) */
+.item-pool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  min-height: 500px;
+}
+
+.pool-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--accent-light);
+  width: 100%;
+}
+
+#pool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Draggable Images */
+.drop-img {
+  width: var(--item-size);
+  height: var(--item-size);
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  box-shadow: var(--shadow-md);
+  border: 3px solid var(--bg-card);
+  background: var(--bg-card);
+  transition: all 0.25s ease;
+  touch-action: none;
+  cursor: grab;
+}
+
+.drop-img:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+}
+
+.drop-img:active {
+  cursor: grabbing;
+}
+
+.dragging {
+  opacity: 0.7;
+  transform: scale(1.1) rotate(2deg);
+  box-shadow: 0 12px 40px rgba(74, 144, 217, 0.3);
+}
+
+/* Completion Message */
+.complete-message {
+  font-size: 1.15rem;
+  color: #1a5c37;
+  background: linear-gradient(135deg, var(--success-light) 0%, #d4f0e0 100%);
+  border: 2px solid var(--success);
+  border-radius: var(--radius-lg);
+  padding: 24px 32px;
+  margin-top: 32px;
+  text-align: center;
+  font-weight: 500;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: var(--shadow-md);
+  line-height: 1.7;
+}
+
+/* Reset Button */
+.reset-btn {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, #5a9de6 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.reset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, #3a7dbf 0%, #4a8dd6 100%);
+}
+
+.reset-btn:active {
+  transform: translateY(0);
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+
+/* Responsive Design */
 @media (max-width: 900px) {
-.game-area { flex-direction: column; align-items: center; }
-.zone-list, .item-pool { flex-direction: row; gap: 14px; min-width: unset; }
-.item-pool { flex-wrap: wrap; min-height: unset; }
+  .wrapper { padding: 20px 16px; }
+  header { padding: 24px 20px; }
+  h1 { font-size: 1.6rem; }
+  .game-area { flex-direction: column; align-items: center; gap: 24px; }
+  .zone-list, .item-pool {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    min-height: unset;
+    width: 100%;
+    max-width: 500px;
+  }
+  #zones, #pool {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .zone-list-title, .pool-title { width: 100%; }
 }
+
 @media (max-width: 600px) {
-:root { --zone-size: 100px; --item-size: 75px; }
-.to-example img { max-width: 110px; }
+  :root {
+    --zone-size: 110px;
+    --item-size: 85px;
+  }
+  .wrapper { padding: 16px 12px; }
+  header { padding: 20px 16px; }
+  h1 { font-size: 1.4rem; }
+  .intro { font-size: 0.95rem; }
+  .to-example { flex-direction: column; gap: 12px; }
+  .to-example img { max-width: 160px; }
+  .instructions { font-size: 0.95rem; padding: 14px 16px; }
+  .stats { flex-direction: column; gap: 12px; padding: 12px; }
+  .game-area { gap: 20px; }
 }
 </style>
 </head>
 <body>
+<div class="wrapper">
+<header>
+  <h1>Symbolic Map Matching</h1>
+  <p class="subtitle">An interactive educational game about medieval cartography</p>
+  <div class="intro">
+    Mapping is the process of creating a visual representation of an area, illustrating spatial relationships between features, whether geographical, data-driven, or conceptual. It involves gathering data through surveys, satellite imagery, or, in the case of medieval T-O maps, symbolic, circular representations of the world. A T-O map (or Orbis Terrarum) is a medieval world map representing the physical world as a circle divided into three parts by a "T" shape.
+  </div>
+  <div class="to-example">
+    <span>Example of a T-O map:</span>
+    <img src="images/to_map_example.jpg" alt="T-O Map Example" loading="lazy">
+  </div>
+</header>
 
-Symbolic Map Matching
-  <div>  
-  <div>Mapping is the process of creating a visual representation of an area, illustrating spatial relationships between features, whether geographical, data-driven, or conceptual. It involves gathering data through surveys, satellite imagery, or, in the case of medieval T-O maps, symbolic, circular representations of the world. A T-O map (or Orbis Terrarum) is a medieval world map representing the physical world as a circle divided into three parts by a "T" shape.</div>  
+<div class="instructions">
+  Drag and drop the location maps to their correct reference photos below. Once all matches are completed, reflect on the T-O maps and how locations are represented and placed, compared to the real references.
+</div>
+
+<div class="stats">
+  <span id="moves">Moves: 0</span>
+  <span id="matches">Matches: 0</span> / 5
+</div>
+
+<div id="live" class="sr-only" aria-live="polite"></div>
+
+<div class="game-area">
+  <div class="zone-list">
+    <div class="zone-list-title">Map Locations</div>
+    <div id="zones"></div>
+  </div>
+  <div class="item-pool">
+    <div class="pool-title">Photo References</div>
+    <div id="pool"></div>
+  </div>
+</div>
+
+<div id="endmessage"></div>
 </div>  
-<div>  
-  <span>This example of a T-O map:</span>  
-  <img src="https://drive.google.com/file/d/16T_6zl724t5l-700xwFncTIIH_EyalJB/view?usp=sharing" alt="T-O Map Example" loading="lazy">  
-</div>  
-
-<div>  
-  Instructions: Drag and drop the location maps to their correct reference photos below. Once all matches are completed, reflect on the T-O maps and how locations are represented and placed, compared to the real references.  
-</div>  
-
-<div>  
-  <span>Moves: 0</span> ·  
-  <span>Matches: 0</span> / 5  
-</div>  
-
-<div></div>  
-
-<div>  
-  <div></div>  
-  <div></div>  
-</div>  
-
-<div></div>  
 <script>
 // Image pairs: index i in MAPS matches index i in PHOTOS
+// Using locally hosted images for reliable loading
 const MAPS = [
-"https://drive.google.com/uc?export=view&id=1JRngUAUVHe0sce58QPphM7ycKs4klyFt", // akron_map
-"https://drive.google.com/uc?export=view&id=1kZUXaG_w0rbjDdrO-WKtxqBAJmfrfQWs", // cafeteria_middleschool
-"https://drive.google.com/uc?export=view&id=1qzvOO58GlJ75X9Z1o_ZtTzunl4jh8IPP", // library_highschool
-"https://drive.google.com/uc?export=view&id=1sc1904nmgseaT3-BL6JvGiyKwZIPr3yJ", // mainentrance
-"https://drive.google.com/uc?export=view&id=1bAAWQGfSX1uVYAEIrN3mAOdJWSdCTxrQ" // tonawandaseneca
+"images/akron_map.png",
+"images/cafeteria_middleschool.jpg",
+"images/library_highschool.png",
+"images/mainentrance.png",
+"images/tonawandaseneca.png"
 ];
 const PHOTOS = [
-"https://drive.google.com/uc?export=view&id=1q16l0FpGCkQCwflhNMpPqSzYUs1hpTXB", // akron_map_photo
-"https://drive.google.com/uc?export=view&id=1MsPoBWAMJXG92ON1NluwJXn2R4WthojE", // cafeteria_middleschool_photo
-"https://drive.google.com/uc?export=view&id=15O2ElcRYiuHB43zM6oAvyWkKQPztscYV", // library_highschool_photo
-"https://drive.google.com/uc?export=view&id=1ynGU8NcBsejHdVNMmGwPb3vQ5iCZPtlW", // mainentrance_photo
-"https://drive.google.com/uc?export=view&id=11hDlkCO6Qsra65nHe7e-reO-vEutOlnN" // tonawandaseneca_photo
+"images/akron_map_photo.png",
+"images/cafeteria_middleschool_photo.png",
+"images/library_highschool_photo.jpg",
+"images/mainentrance_photo.png",
+"images/tonawandaseneca_photo.png"
 ];
 const zonesEl = document.getElementById('zones');  
 const poolEl = document.getElementById('pool');  
@@ -119,9 +480,9 @@ function renderGame() {
     z.className = 'zone';  
     z.dataset.zone = i;  
     z.tabIndex = 0;  
-    z.innerHTML = `  
-      <img src alt="Map location ${i+1}">  
-      <span>Drop the matching photo</span>  
+    z.innerHTML = `
+      <img src="${MAPS[i]}" alt="Map location ${i+1}" class="zone-map-img">
+      <span>Drop the matching photo</span>
     `;  
     zonesEl.appendChild(z);  
 
@@ -235,14 +596,21 @@ function announce(txt) {
   liveEl.textContent = txt;  
 }  
 
-function showCompleteMessage() {  
-  endMsgEl.innerHTML = `  
-    <div>  
-      🎉 Thank you for playing Symbolic Map Matching!<br>  
-      All locations have been matched.<br><br>  
-      Consider the items in the T‑O maps and their placement, as compared to the photo references you matched.<br>  
-      What differences or similarities did you notice?  
-    </div>`;  
+function showCompleteMessage() {
+  endMsgEl.innerHTML = `
+    <div class="complete-message">
+      🎉 Thank you for playing Symbolic Map Matching!<br>
+      All locations have been matched.<br><br>
+      Consider the items in the T‑O maps and their placement, as compared to the photo references you matched.<br>
+      What differences or similarities did you notice?<br><br>
+      <button class="reset-btn" onclick="resetGame()">Play Again</button>
+    </div>`;
+}
+
+function resetGame() {
+  gameComplete = false;
+  endMsgEl.innerHTML = '';
+  renderGame();
 }  
 
 renderGame();  
