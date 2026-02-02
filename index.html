@@ -4,248 +4,656 @@
 <meta charset="UTF-8" />
 <title>Symbolic Map Matching</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root {
---zone-size: 140px;
---item-size: 120px;
---cols: 2;
---accent: #2d7ff9;
+  --zone-size: 160px;
+  --item-size: 130px;
+  --accent: #4f46e5;
+  --accent-light: #818cf8;
+  --accent-dark: #3730a3;
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-light: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
 }
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-font-family: system-ui, Arial, sans-serif;
-margin: 0;
-padding: 24px;
-background: #f7f8fb;
-color: #12141a;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: var(--text-primary);
 }
-.wrapper { max-width: 920px; margin: 0 auto; }
-header { margin-bottom: 16px; }
-h1 { font-size: 1.35rem; margin: 0 0 14px 0; }
-.intro { font-size: 1rem; margin-bottom: 12px; line-height: 1.5; }
-.to-example { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
-.to-example img { max-width: 200px; height: auto; border-radius: 5px; border: 1px solid #ddd; background: #fff; }
-.instructions { background: #eef3ff; padding: 10px 14px; margin-bottom: 22px; border-radius: 8px; font-size: 1rem; color: #183372; }
-.stats { font-size: 0.98rem; color: #4a4f57; margin-bottom: 12px; }
-.game-area { display: flex; align-items: flex-start; justify-content: center; gap: 32px; margin-bottom: 24px; flex-wrap: wrap; }
-.zone-list, .item-pool { display: flex; flex-direction: column; gap: 20px; min-width: 175px; }
-.zone { width: var(--zone-size); height: var(--zone-size); border: 2px dashed #bfcbe6; border-radius: 13px; display: flex; align-items: center; justify-content: center; background: #f3f6fd; transition: border-color 0.18s; position: relative; min-height: var(--zone-size); }
-.zone.dragover { border-color: var(--accent); background: #e6eefc; }
-.zone .prompt-label { position: absolute; font-size: 0.92em; top: 100%; left: 50%; transform: translate(-50%, 6px); color: #678; white-space: nowrap; }
-.drop-img { width: var(--item-size); height: var(--item-size); border-radius: 10px; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #dadff0; background: #fff; transition: box-shadow 0.18s; touch-action: none; }
-.item-pool { align-items: center; justify-content: flex-start; min-width: 180px; background: #f8fafd; padding: 10px 6px; border-radius: 10px; border: 1px solid #e9eaf3; min-height: 450px; }
-.dragging { opacity: 0.6; box-shadow: 0 5px 18px #cbe1fd; }
-.zone.matched { border-color: #55cb76; background: #e2f9e1; transition: background 0.3s, border 0.3s; }
-.complete-message { font-size: 1.08em; color: #21663e; background: #e3faef; border: 1px solid #ace0c0; border-radius: 9px; padding: 14px 18px; margin-top: 24px; text-align: center; font-weight: 500; max-width: 700px; margin-left: auto; margin-right: auto; }
-.sr-only { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+
+.wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
+  font-weight: 400;
+}
+
+.main-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.intro-section {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: start;
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.intro-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.intro-text strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.to-example {
+  flex-shrink: 0;
+}
+
+.to-example-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.to-example-card img {
+  width: 180px;
+  height: auto;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 3px solid #ffffff;
+}
+
+.to-example-card .label {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.instructions {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  padding: 20px 24px;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  color: var(--accent-dark);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #c4b5fd;
+}
+
+.instructions-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.instructions-text {
+  line-height: 1.6;
+}
+
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-tertiary);
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 500;
+}
+
+.stat-item .icon {
+  font-size: 1.2rem;
+}
+
+.stat-item .value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.stat-item .label {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.game-area {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.zone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.zone-section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.zone {
+  width: var(--zone-size);
+  height: var(--zone-size);
+  border: 3px dashed var(--border-medium);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  transition: all 0.25s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.zone:hover {
+  border-color: var(--accent-light);
+  background: #f5f3ff;
+}
+
+.zone.dragover {
+  border-color: var(--accent);
+  border-style: solid;
+  background: #ede9fe;
+  transform: scale(1.02);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+
+.zone .zone-img {
+  width: calc(var(--zone-size) - 20px);
+  height: calc(var(--zone-size) - 40px);
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.zone .prompt-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.item-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 200px;
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  min-height: 500px;
+  align-items: center;
+}
+
+.drop-img {
+  width: var(--item-size);
+  height: var(--item-size);
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  box-shadow: var(--shadow-md);
+  border: 3px solid var(--bg-secondary);
+  background: var(--bg-secondary);
+  transition: all 0.25s ease;
+  touch-action: none;
+  cursor: grab;
+}
+
+.drop-img:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-light);
+}
+
+.drop-img:active {
+  cursor: grabbing;
+}
+
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  box-shadow: var(--shadow-xl);
+}
+
+.zone.matched {
+  border-color: var(--success);
+  border-style: solid;
+  background: var(--success-light);
+  animation: matchPulse 0.5s ease;
+}
+
+@keyframes matchPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.zone.matched .prompt-label {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.complete-message {
+  font-size: 1.15rem;
+  color: #065f46;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 2px solid #6ee7b7;
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin-top: 32px;
+  text-align: center;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.complete-message .title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sr-only {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+
+footer {
+  text-align: center;
+  padding: 24px;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 900px) {
-.game-area { flex-direction: column; align-items: center; }
-.zone-list, .item-pool { flex-direction: row; gap: 14px; min-width: unset; }
-.item-pool { flex-wrap: wrap; min-height: unset; }
+  .intro-section {
+    grid-template-columns: 1fr;
+  }
+  .to-example {
+    justify-self: center;
+  }
+  .game-area {
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+  }
+  .zone-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+  .item-pool {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: auto;
+    padding: 16px;
+  }
 }
+
 @media (max-width: 600px) {
-:root { --zone-size: 100px; --item-size: 75px; }
-.to-example img { max-width: 110px; }
+  :root {
+    --zone-size: 120px;
+    --item-size: 100px;
+  }
+  .wrapper {
+    padding: 16px;
+  }
+  h1 {
+    font-size: 1.75rem;
+  }
+  .main-card {
+    padding: 20px;
+    border-radius: var(--radius-lg);
+  }
+  .to-example-card img {
+    width: 140px;
+  }
+  .stats-bar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
 }
 </style>
 </head>
 <body>
+<div class="wrapper">
+  <header>
+    <h1>Symbolic Map Matching</h1>
+    <p class="subtitle">Explore the art of medieval cartography</p>
+  </header>
 
-Symbolic Map Matching
-  <div>  
-  <div>Mapping is the process of creating a visual representation of an area, illustrating spatial relationships between features, whether geographical, data-driven, or conceptual. It involves gathering data through surveys, satellite imagery, or, in the case of medieval T-O maps, symbolic, circular representations of the world. A T-O map (or Orbis Terrarum) is a medieval world map representing the physical world as a circle divided into three parts by a "T" shape.</div>  
+  <main class="main-card">
+    <section class="intro-section">
+      <div class="intro-text">
+        <strong>Mapping</strong> is the process of creating a visual representation of an area, illustrating spatial relationships between features, whether geographical, data-driven, or conceptual. It involves gathering data through surveys, satellite imagery, or, in the case of medieval T-O maps, symbolic, circular representations of the world.
+        <br><br>
+        A <strong>T-O map</strong> (or Orbis Terrarum) is a medieval world map representing the physical world as a circle divided into three parts by a "T" shape.
+      </div>
+      <div class="to-example">
+        <div class="to-example-card">
+          <img src="assets/to_examplemap.jpg" alt="T-O Map Example" loading="lazy">
+          <span class="label">Example T-O Map</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="instructions">
+      <span class="instructions-icon">&#128269;</span>
+      <span class="instructions-text">
+        <strong>Instructions:</strong> Drag and drop the photos on the right to their matching map locations on the left. Once all matches are completed, reflect on how the T-O maps represent locations compared to the real references.
+      </span>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="icon">&#128070;</span>
+        <span class="label">Moves:</span>
+        <span id="moves" class="value">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="icon">&#10003;</span>
+        <span class="label">Matches:</span>
+        <span id="matches" class="value">0</span>
+        <span class="label">/ 5</span>
+      </div>
+    </div>
+
+    <div id="live" class="sr-only" aria-live="polite"></div>
+
+    <div class="game-area">
+      <div>
+        <div class="zone-section-title">Map Locations</div>
+        <div id="zones" class="zone-list"></div>
+      </div>
+      <div>
+        <div class="zone-section-title">Photo References</div>
+        <div id="pool" class="item-pool"></div>
+      </div>
+    </div>
+
+    <div id="endmessage"></div>
+  </main>
+
+  <footer>
+    Built with care for exploring historical cartography
+  </footer>
 </div>  
-<div>  
-  <span>This example of a T-O map:</span>  
-  <img src="https://drive.google.com/file/d/16T_6zl724t5l-700xwFncTIIH_EyalJB/view?usp=sharing" alt="T-O Map Example" loading="lazy">  
-</div>  
-
-<div>  
-  Instructions: Drag and drop the location maps to their correct reference photos below. Once all matches are completed, reflect on the T-O maps and how locations are represented and placed, compared to the real references.  
-</div>  
-
-<div>  
-  <span>Moves: 0</span> ·  
-  <span>Matches: 0</span> / 5  
-</div>  
-
-<div></div>  
-
-<div>  
-  <div></div>  
-  <div></div>  
-</div>  
-
-<div></div>  
 <script>
-// Image pairs: index i in MAPS matches index i in PHOTOS
+// Map images (T-O style maps) - using original uploaded assets
 const MAPS = [
-"https://drive.google.com/uc?export=view&id=1JRngUAUVHe0sce58QPphM7ycKs4klyFt", // akron_map
-"https://drive.google.com/uc?export=view&id=1kZUXaG_w0rbjDdrO-WKtxqBAJmfrfQWs", // cafeteria_middleschool
-"https://drive.google.com/uc?export=view&id=1qzvOO58GlJ75X9Z1o_ZtTzunl4jh8IPP", // library_highschool
-"https://drive.google.com/uc?export=view&id=1sc1904nmgseaT3-BL6JvGiyKwZIPr3yJ", // mainentrance
-"https://drive.google.com/uc?export=view&id=1bAAWQGfSX1uVYAEIrN3mAOdJWSdCTxrQ" // tonawandaseneca
+  "assets/akron_map.png",                  // Akron area map
+  "assets/cafeteria_middleschool.png",     // Cafeteria/middle school map
+  "assets/library_highschool.png",         // Library/high school map
+  "assets/mainentrance.png",               // Main entrance map
+  "assets/tonawandaseneca.png"             // Tonawanda Seneca map
 ];
+
+// Corresponding photo references - using original uploaded photos
 const PHOTOS = [
-"https://drive.google.com/uc?export=view&id=1q16l0FpGCkQCwflhNMpPqSzYUs1hpTXB", // akron_map_photo
-"https://drive.google.com/uc?export=view&id=1MsPoBWAMJXG92ON1NluwJXn2R4WthojE", // cafeteria_middleschool_photo
-"https://drive.google.com/uc?export=view&id=15O2ElcRYiuHB43zM6oAvyWkKQPztscYV", // library_highschool_photo
-"https://drive.google.com/uc?export=view&id=1ynGU8NcBsejHdVNMmGwPb3vQ5iCZPtlW", // mainentrance_photo
-"https://drive.google.com/uc?export=view&id=11hDlkCO6Qsra65nHe7e-reO-vEutOlnN" // tonawandaseneca_photo
+  "assets/akron_map_photo.png",            // Akron area photo
+  "assets/cafeteria_middleschool_photo.JPG", // Cafeteria photo
+  "assets/library_highschool_photo.JPG",   // Library photo
+  "assets/mainentrance_photo.jpeg",        // Main entrance photo
+  "assets/tonawandaseneca_photo.png"       // Tonawanda Seneca photo
 ];
-const zonesEl = document.getElementById('zones');  
-const poolEl = document.getElementById('pool');  
-const movesEl = document.getElementById('moves');  
-const matchesEl = document.getElementById('matches');  
-const liveEl = document.getElementById('live');  
-const endMsgEl = document.getElementById('endmessage');  
 
-let moves = 0;  
-let matches = 0;  
-let gameComplete = false;  
+const zonesEl = document.getElementById('zones');
+const poolEl = document.getElementById('pool');
+const movesEl = document.getElementById('moves');
+const matchesEl = document.getElementById('matches');
+const liveEl = document.getElementById('live');
+const endMsgEl = document.getElementById('endmessage');
 
-function shuffle(arr) {  
-  const a = arr.slice();  
-  for (let i = a.length - 1; i &gt; 0; i--) {  
-    const j = Math.floor(Math.random() * (i + 1));  
-    [a[i], a[j]] = [a[j], a[i]];  
-  }  
-  return a;  
-}  
+let moves = 0;
+let matches = 0;
+let gameComplete = false;
 
-function renderGame() {  
-  zonesEl.innerHTML = '';  
-  for (let i = 0; i &lt; MAPS.length; ++i) {  
-    const z = document.createElement('div');  
-    z.className = 'zone';  
-    z.dataset.zone = i;  
-    z.tabIndex = 0;  
-    z.innerHTML = `  
-      <img src alt="Map location ${i+1}">  
-      <span>Drop the matching photo</span>  
-    `;  
-    zonesEl.appendChild(z);  
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-    z.addEventListener('dragover', e =&gt; {  
-      if (gameComplete) return;  
-      e.preventDefault();  
-      z.classList.add('dragover');  
-    });  
-    z.addEventListener('dragleave', () =&gt; z.classList.remove('dragover'));  
-    z.addEventListener('drop', function(e) {  
-      if (gameComplete) return;  
-      z.classList.remove('dragover');  
-      if (z.classList.contains('matched')) return;  
-      const draggedIdx = parseInt(e.dataTransfer.getData('photo-idx'));  
-      processDrop(i, draggedIdx, this);  
-    });  
-    z.addEventListener('touchmove', e =&gt; e.preventDefault());  
-  }  
+function renderGame() {
+  zonesEl.innerHTML = '';
+  for (let i = 0; i < MAPS.length; ++i) {
+    const z = document.createElement('div');
+    z.className = 'zone';
+    z.dataset.zone = i;
+    z.tabIndex = 0;
+    z.innerHTML = `
+      <img class="zone-img" src="${MAPS[i]}" alt="Map location ${i+1}">
+      <span class="prompt-label">Drop match here</span>
+    `;
+    zonesEl.appendChild(z);
 
-  poolEl.innerHTML = '';  
-  const shuffled = shuffle(PHOTOS.map((src, idx) =&gt; ({src, idx})));  
-  for (let {src, idx} of shuffled) {  
-    const img = document.createElement('img');  
-    img.src = src;  
-    img.alt = "Photo reference " + (idx + 1);  
-    img.className = 'drop-img';  
-    img.draggable = true;  
-    img.dataset.photoIdx = idx;  
-    img.tabIndex = 0;  
+    z.addEventListener('dragover', e => {
+      if (gameComplete) return;
+      e.preventDefault();
+      z.classList.add('dragover');
+    });
+    z.addEventListener('dragleave', () => z.classList.remove('dragover'));
+    z.addEventListener('drop', function(e) {
+      if (gameComplete) return;
+      z.classList.remove('dragover');
+      if (z.classList.contains('matched')) return;
+      const draggedIdx = parseInt(e.dataTransfer.getData('photo-idx'));
+      processDrop(i, draggedIdx, this);
+    });
+    z.addEventListener('touchmove', e => e.preventDefault());
+  }
 
-    img.addEventListener('dragstart', function(e) {  
-      if (gameComplete) { e.preventDefault(); return; }  
-      e.dataTransfer.effectAllowed = 'move';  
-      e.dataTransfer.setData('photo-idx', idx);  
-      setTimeout(() =&gt; img.classList.add('dragging'), 0);  
-    });  
-    img.addEventListener('dragend', function() {  
-      img.classList.remove('dragging');  
-    });  
+  poolEl.innerHTML = '';
+  const shuffled = shuffle(PHOTOS.map((src, idx) => ({src, idx})));
+  for (let {src, idx} of shuffled) {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = "Photo reference " + (idx + 1);
+    img.className = 'drop-img';
+    img.draggable = true;
+    img.dataset.photoIdx = idx;
+    img.tabIndex = 0;
 
-    // Touch support  
-    img.addEventListener('touchstart', function() {  
-      if (gameComplete) return;  
-      img.classList.add('dragging');  
-      this._touchMoving = true;  
-    });  
-    img.addEventListener('touchend', function(e) {  
-      if (!this._touchMoving) return;  
-      this._touchMoving = false;  
-      img.classList.remove('dragging');  
-      let touch = e.changedTouches[0];  
-      let el = document.elementFromPoint(touch.clientX, touch.clientY);  
-      while (el && !el.classList?.contains('zone') && el !== document.body) el = el.parentNode;  
-      if (el && el.classList.contains('zone') && !el.classList.contains('matched')) {  
-        let zoneIdx = parseInt(el.dataset.zone);  
-        processDrop(zoneIdx, idx, el);  
-      }  
-    });  
+    img.addEventListener('dragstart', function(e) {
+      if (gameComplete) { e.preventDefault(); return; }
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('photo-idx', idx);
+      setTimeout(() => img.classList.add('dragging'), 0);
+    });
+    img.addEventListener('dragend', function() {
+      img.classList.remove('dragging');
+    });
 
-    poolEl.appendChild(img);  
-  }  
+    // Touch support
+    img.addEventListener('touchstart', function() {
+      if (gameComplete) return;
+      img.classList.add('dragging');
+      this._touchMoving = true;
+    });
+    img.addEventListener('touchend', function(e) {
+      if (!this._touchMoving) return;
+      this._touchMoving = false;
+      img.classList.remove('dragging');
+      let touch = e.changedTouches[0];
+      let el = document.elementFromPoint(touch.clientX, touch.clientY);
+      while (el && !el.classList?.contains('zone') && el !== document.body) el = el.parentNode;
+      if (el && el.classList.contains('zone') && !el.classList.contains('matched')) {
+        let zoneIdx = parseInt(el.dataset.zone);
+        processDrop(zoneIdx, idx, el);
+      }
+    });
 
-  moves = 0;  
-  matches = 0;  
-  updateStats();  
-  announce("Start the game. Drag a photo to its matching map.");  
-}  
+    poolEl.appendChild(img);
+  }
 
-function processDrop(zoneIdx, photoIdx, zoneEl) {  
-  if (gameComplete || zoneEl.classList.contains('matched')) return;  
-  moves += 1;  
+  moves = 0;
+  matches = 0;
+  updateStats();
+  announce("Start the game. Drag a photo to its matching map.");
+}
 
-  if (zoneIdx === photoIdx) {  
-    matches += 1;  
-    zoneEl.classList.add('matched');  
+function processDrop(zoneIdx, photoIdx, zoneEl) {
+  if (gameComplete || zoneEl.classList.contains('matched')) return;
+  moves += 1;
 
-    // Hide from pool and show confirmation image in zone  
-    const poolImgs = poolEl.querySelectorAll('.drop-img');  
-    for (let img of poolImgs) {  
-      if (parseInt(img.dataset.photoIdx) === photoIdx) {  
-        img.style.display = "none";  
-        const matchthumb = img.cloneNode();  
-        matchthumb.draggable = false;  
-        matchthumb.style.marginLeft = "5px";  
-        matchthumb.tabIndex = -1;  
-        zoneEl.appendChild(matchthumb);  
-        break;  
-      }  
-    }  
+  if (zoneIdx === photoIdx) {
+    matches += 1;
+    zoneEl.classList.add('matched');
 
-    announce("Correct match.");  
-    updateStats();  
+    // Hide from pool and show confirmation image in zone
+    const poolImgs = poolEl.querySelectorAll('.drop-img');
+    for (let img of poolImgs) {
+      if (parseInt(img.dataset.photoIdx) === photoIdx) {
+        img.style.display = "none";
+        const matchthumb = img.cloneNode();
+        matchthumb.draggable = false;
+        matchthumb.style.position = "absolute";
+        matchthumb.style.bottom = "5px";
+        matchthumb.style.right = "5px";
+        matchthumb.style.width = "50px";
+        matchthumb.style.height = "50px";
+        matchthumb.style.borderRadius = "8px";
+        matchthumb.style.border = "2px solid #10b981";
+        matchthumb.tabIndex = -1;
+        zoneEl.appendChild(matchthumb);
+        zoneEl.querySelector('.prompt-label').textContent = "Matched!";
+        break;
+      }
+    }
 
-    if (matches === MAPS.length) {  
-      gameComplete = true;  
-      announce("All matches found.");  
-      setTimeout(showCompleteMessage, 390);  
-    }  
-  } else {  
-    announce("Try again. That's not the correct photo for this map.");  
-    updateStats();  
-  }  
-}  
+    announce("Correct match.");
+    updateStats();
 
-function updateStats() {  
-  movesEl.textContent = "Moves: " + moves;  
-  matchesEl.textContent = "Matches: " + matches;  
-}  
+    if (matches === MAPS.length) {
+      gameComplete = true;
+      announce("All matches found.");
+      setTimeout(showCompleteMessage, 390);
+    }
+  } else {
+    announce("Try again. That's not the correct photo for this map.");
+    updateStats();
+  }
+}
 
-function announce(txt) {  
-  liveEl.textContent = txt;  
-}  
+function updateStats() {
+  movesEl.textContent = moves;
+  matchesEl.textContent = matches;
+}
 
-function showCompleteMessage() {  
-  endMsgEl.innerHTML = `  
-    <div>  
-      🎉 Thank you for playing Symbolic Map Matching!<br>  
-      All locations have been matched.<br><br>  
-      Consider the items in the T‑O maps and their placement, as compared to the photo references you matched.<br>  
-      What differences or similarities did you notice?  
-    </div>`;  
-}  
+function announce(txt) {
+  liveEl.textContent = txt;
+}
 
-renderGame();  
+function showCompleteMessage() {
+  endMsgEl.innerHTML = `
+    <div class="complete-message">
+      <div class="title">&#127881; Congratulations!</div>
+      Thank you for playing Symbolic Map Matching!<br>
+      All locations have been matched successfully.<br><br>
+      <em>Consider the items in the T-O maps and their placement, as compared to the photo references you matched. What differences or similarities did you notice?</em>
+    </div>`;
+}
+
+renderGame();
 </script>
 </body>
 </html>
